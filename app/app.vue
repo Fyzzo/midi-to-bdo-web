@@ -8,7 +8,7 @@
           <DiscIcon class="h-4.5 w-4.5 text-bdo-darkest animate-spin-slow" />
         </div>
         <div>
-          <h1 class="text-lg font-black tracking-wider text-glow bg-gradient-to-r from-bdo-goldBright via-bdo-gold to-bdo-goldDark bg-clip-text text-transparent uppercase">
+          <h1 class="text-lg font-black tracking-wider text-glow text-bdo-goldBright uppercase">
             Marnian Studio
           </h1>
           <p class="text-[9px] text-bdo-textDim tracking-widest uppercase font-semibold">MIDI to BDO Composer</p>
@@ -150,6 +150,7 @@
                   :max="totalDurationMs" 
                   class="w-full accent-bdo-gold bg-bdo-surface h-1 rounded-lg appearance-none cursor-pointer"
                   :disabled="totalDurationMs === 0"
+                  aria-label="Playback position"
                 />
               </div>
 
@@ -169,6 +170,7 @@
                   min="0" 
                   max="100" 
                   class="w-20 accent-bdo-gold bg-bdo-surface h-1 rounded-lg appearance-none cursor-pointer"
+                  aria-label="Preview volume"
                 />
                 <span class="text-[9px] text-bdo-textDim font-mono font-bold w-6 text-right select-none">
                   {{ isMuted ? 0 : previewVolume }}%
@@ -181,7 +183,12 @@
           <div 
             v-else 
             @click="triggerFileInput"
-            class="p-12 text-center space-y-4 cursor-pointer hover:bg-bdo-light/40 transition-colors"
+            @keydown.enter.prevent="triggerFileInput"
+            @keydown.space.prevent="triggerFileInput"
+            tabindex="0"
+            role="button"
+            aria-label="Upload MIDI file"
+            class="p-12 text-center space-y-4 cursor-pointer hover:bg-bdo-light/40 transition-colors focus:outline-none focus:ring-2 focus:ring-bdo-gold focus:ring-offset-2 focus:ring-offset-bdo-darkest rounded-2xl"
           >
             <div class="h-14 w-14 rounded-2xl bg-bdo-surface/60 text-bdo-textDim border border-bdo-border flex items-center justify-center mx-auto shadow-inner transition-transform hover:scale-105 duration-300">
               <UploadCloudIcon class="h-7 w-7 text-bdo-gold" />
@@ -278,6 +285,7 @@
                   max="200" 
                   step="10"
                   class="flex-1 accent-bdo-gold bg-bdo-surface h-1 rounded appearance-none cursor-pointer"
+                  :aria-label="'Volume gain for ' + chGroup.name"
                 />
                 <span class="text-[10px] text-bdo-gold font-mono font-bold min-w-[28px] text-right">
                   {{ getChannelVolume(chGroup.channel) }}%

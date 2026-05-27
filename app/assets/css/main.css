@@ -22,12 +22,11 @@
   }
 }
 
-/* Glassmorphism card utilities */
+/* Premium design surface utilities (replacing default glassmorphism for better performance and artisan-grade aesthetics) */
 .bdo-glass {
-  background: rgba(49, 50, 57, 0.4);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(89, 90, 98, 0.2);
+  background: #1d1d1f;
+  border: 1px solid rgba(216, 173, 112, 0.15);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
 }
 
 .bdo-glass-premium {
