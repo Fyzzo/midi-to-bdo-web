@@ -2,6 +2,9 @@
   "name": "midi-to-bdo-web",
   "type": "module",
   "private": true,
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "scripts": {
     "build": "nuxt build",
     "dev": "nuxt dev",
@@ -10,7 +13,6 @@
     "postinstall": "nuxt prepare"
   },
   "dependencies": {
-    "@lucide/vue": "^1.16.0",
     "@nuxtjs/tailwindcss": "^6.14.0",
     "@tonejs/midi": "^2.0.28",
     "canvas-confetti": "^1.9.4",

@@ -664,7 +664,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, nextTick, watch, onMounted, onUnmounted } from 'vue';
+import { ref, reactive, nextTick, watch, onUnmounted } from 'vue';
 import { 
   Music as MusicIcon, 
   Sparkles as SparklesIcon, 
@@ -697,6 +697,8 @@ import {
   steppedVelocity,
   layeredVelocity,
   splitNotesIntoTracks,
+  MAX_NOTES_PER_TRACK,
+  MAX_NOTES_PER_INSTRUMENT,
   type ParsedMidiResult,
   type BdoNote
 } from '~/utils/midiProcessor';
@@ -710,9 +712,7 @@ import {
 } from '~/utils/bdoBinary';
 
 import { playBdoNote } from '~/utils/audioSynth';
-
-// Confetti trigger
-let confetti: any = null;
+import confetti from 'canvas-confetti';
 
 // Template refs
 const fileInput = ref<HTMLInputElement | null>(null);
@@ -787,15 +787,7 @@ const lookAheadMs = 120;
 let timerIntervalId: any = null;
 let animationFrameId: number | null = null;
 
-onMounted(async () => {
-  // Dynamic import of canvas-confetti to prevent SSR issues
-  try {
-    const confettiModule = await import('canvas-confetti');
-    confetti = confettiModule.default || confettiModule;
-  } catch (e) {
-    console.error("Confetti loader failed", e);
-  }
-});
+
 
 // Watch settings and re-draw canvas
 watch([parsedMidi, transpose], () => {

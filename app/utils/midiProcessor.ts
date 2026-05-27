@@ -1,9 +1,6 @@
 // app/utils/midiProcessor.ts
-import * as toneMidi from '@tonejs/midi';
+import { Midi } from '@tonejs/midi';
 import { type BdoNote, type BdoInstrumentGroup } from './bdoBinary';
-
-// Robust CommonJS to ESM wrapper for @tonejs/midi to support both Vite dev and Nitro/Vercel SSR
-const Midi = (toneMidi.Midi || (toneMidi as any).default?.Midi || (toneMidi as any).default) as typeof toneMidi.Midi;
 
 
 export const BDO_INSTRUMENTS: Record<string, number> = {
