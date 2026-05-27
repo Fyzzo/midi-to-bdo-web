@@ -11,7 +11,7 @@
           <h1 class="text-lg font-black tracking-wider text-glow bg-gradient-to-r from-bdo-goldBright via-bdo-gold to-bdo-goldDark bg-clip-text text-transparent uppercase">
             Marnian Studio
           </h1>
-          <p class="text-[9px] text-bdo-textDim tracking-widest uppercase font-semibold">Premium Web Workstation</p>
+          <p class="text-[9px] text-bdo-textDim tracking-widest uppercase font-semibold">MIDI to BDO Composer</p>
         </div>
       </div>
       
