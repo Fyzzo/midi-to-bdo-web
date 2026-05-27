@@ -1,0 +1,43 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-bdo-darkest text-bdo-text font-sans selection:bg-bdo-gold/30 selection:text-white antialiased overflow-x-hidden;
+  }
+
+  /* Custom gaming scrollbars */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    @apply bg-bdo-dark;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    @apply bg-bdo-border rounded-full border border-bdo-dark hover:bg-bdo-goldScroll;
+  }
+}
+
+/* Glassmorphism card utilities */
+.bdo-glass {
+  background: rgba(49, 50, 57, 0.4);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(89, 90, 98, 0.2);
+}
+
+.bdo-glass-premium {
+  background: linear-gradient(135deg, rgba(36, 36, 39, 0.7) 0%, rgba(29, 29, 31, 0.8) 100%);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(216, 173, 112, 0.25);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+.text-glow {
+  text-shadow: 0 0 8px rgba(216, 173, 112, 0.4);
+}
