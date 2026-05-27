@@ -9,7 +9,7 @@
         </div>
         <div>
           <h1 class="text-lg font-black tracking-wider text-glow bg-gradient-to-r from-bdo-goldBright via-bdo-gold to-bdo-goldDark bg-clip-text text-transparent uppercase">
-            MIDI to BDO
+            Marnian Studio
           </h1>
           <p class="text-[9px] text-bdo-textDim tracking-widest uppercase font-semibold">Premium Web Workstation</p>
         </div>
@@ -655,7 +655,7 @@
 
     <!-- Footer -->
     <footer class="mt-auto border-t border-bdo-border/20 py-5 px-6 text-center text-[10px] text-bdo-textDim bg-bdo-darkest/50 space-y-1.5">
-      <p class="font-bold text-bdo-gold">MIDI to Black Desert Online Composition Encoder (v9)</p>
+      <p class="font-bold text-bdo-gold">Marnian Studio — BDO Music Sheet Encoder (v9)</p>
       <p class="font-medium tracking-wide">
         Secure & Local · All MIDI parses, decryptions, and binary packages occur safely within your web browser.
       </p>
