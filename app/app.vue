@@ -5,7 +5,7 @@
     <header class="border-b border-bdo-border/30 bg-bdo-darkest/80 backdrop-blur-md sticky top-0 z-50 py-3.5 px-6 md:px-10 flex items-center justify-between">
       <div class="flex items-center space-x-3">
         <div class="h-9 w-9 rounded-xl bg-gradient-to-tr from-bdo-goldDark to-bdo-gold flex items-center justify-center shadow-md shadow-bdo-gold/15">
-          <MusicIcon class="h-4.5 w-4.5 text-bdo-darkest" />
+          <DiscIcon class="h-4.5 w-4.5 text-bdo-darkest animate-spin-slow" />
         </div>
         <div>
           <h1 class="text-lg font-black tracking-wider text-glow bg-gradient-to-r from-bdo-goldBright via-bdo-gold to-bdo-goldDark bg-clip-text text-transparent uppercase">
