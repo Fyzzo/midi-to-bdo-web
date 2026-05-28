@@ -5,7 +5,7 @@ let noiseBuffer: AudioBuffer | null = null;
 // Soundfont sampler cache for high-quality instruments
 const sampleCache: Record<string, Record<number, AudioBuffer>> = {};
 
-const NOTE_NAMES = ['C', 'Cs', 'D', 'Ds', 'E', 'F', 'Fs', 'G', 'Gs', 'A', 'As', 'B'];
+const NOTE_NAMES = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'];
 
 function getNoteName(pitch: number): string {
   const octave = Math.floor(pitch / 12) - 1;
