@@ -2,8 +2,13 @@
 
 let noiseBuffer: AudioBuffer | null = null;
 
-// Soundfont sampler cache for high-quality instruments
-const sampleCache: Record<string, Record<number, AudioBuffer>> = {};
+// Soundfont sampler caches: raw ArrayBuffers (network-persistent) and decoded AudioBuffers (AudioContext-dependent)
+const rawSampleCache: Record<string, Record<number, ArrayBuffer>> = {};
+let decodedSampleCache: Record<string, Record<number, AudioBuffer>> = {};
+
+export function clearDecodedCache() {
+  decodedSampleCache = {};
+}
 
 const NOTE_NAMES = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'];
 
@@ -14,21 +19,67 @@ function getNoteName(pitch: number): string {
 }
 
 async function fetchAndCacheSample(ctx: AudioContext, instrument: string, pitch: number, noteName: string) {
-  if (!sampleCache[instrument]) {
-    sampleCache[instrument] = {};
+  if (!decodedSampleCache[instrument]) {
+    decodedSampleCache[instrument] = {};
   }
-  if (sampleCache[instrument][pitch]) return;
+  if (decodedSampleCache[instrument][pitch]) return;
 
-  const url = `https://gleitz.github.io/midi-js-soundfonts/FluidR3_GM/${instrument}-mp3/${noteName}.mp3`;
   try {
-    const res = await fetch(url);
-    if (!res.ok) return;
-    const arrayBuffer = await res.arrayBuffer();
-    // Use new Promise-based decodeAudioData for robustness
-    const audioBuffer = await ctx.decodeAudioData(arrayBuffer);
-    sampleCache[instrument][pitch] = audioBuffer;
+    let arrayBuffer = rawSampleCache[instrument]?.[pitch];
+
+    if (!arrayBuffer) {
+      const url = `https://gleitz.github.io/midi-js-soundfonts/FluidR3_GM/${instrument}-mp3/${noteName}.mp3`;
+      const res = await fetch(url);
+      if (!res.ok) return;
+      arrayBuffer = await res.arrayBuffer();
+      if (!rawSampleCache[instrument]) {
+        rawSampleCache[instrument] = {};
+      }
+      rawSampleCache[instrument][pitch] = arrayBuffer;
+    }
+
+    // Slice to avoid mutating the cached ArrayBuffer across decodeAudioData calls
+    const decoded = await ctx.decodeAudioData(arrayBuffer.slice(0));
+    decodedSampleCache[instrument][pitch] = decoded;
   } catch (err) {
     // Fail silently, fallback is always active
+  }
+}
+
+/**
+ * Asynchronously preloads and decodes high-quality samples for the active song.
+ * This guarantees that when the song starts playing, all piano/guitar/flute
+ * notes are already loaded in memory, avoiding any synthesized fallback bleed.
+ */
+export async function preloadSamplesForSong(ctx: AudioContext, notes: { instId: number, pitch: number }[]) {
+  const instrumentMap: Record<number, string> = {
+    0x07: 'acoustic_grand_piano',
+    0x11: 'acoustic_grand_piano',
+    0x00: 'acoustic_guitar_nylon',
+    0x0a: 'acoustic_guitar_nylon',
+    0x01: 'flute',
+    0x0b: 'flute'
+  };
+
+  const fetched = new Set<string>();
+  const promises: Promise<void>[] = [];
+
+  for (const n of notes) {
+    const instrument = instrumentMap[n.instId];
+    if (instrument) {
+      const noteName = getNoteName(n.pitch);
+      const cacheKey = `${instrument}-${n.pitch}`;
+      if (!fetched.has(cacheKey)) {
+        fetched.add(cacheKey);
+        promises.push(fetchAndCacheSample(ctx, instrument, n.pitch, noteName));
+      }
+    }
+  }
+
+  try {
+    await Promise.all(promises);
+  } catch (err) {
+    console.warn("Error preloading some samples:", err);
   }
 }
 
@@ -145,7 +196,7 @@ export function playBdoNote(
   const instrument = instrumentMap[instId];
   if (instrument) {
     const noteName = getNoteName(pitch);
-    const cachedBuffer = sampleCache[instrument]?.[pitch];
+    const cachedBuffer = decodedSampleCache[instrument]?.[pitch];
 
     if (cachedBuffer) {
       const source = ctx.createBufferSource();

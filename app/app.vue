@@ -719,7 +719,7 @@ import {
   type BdoInstrumentGroup
 } from '~/utils/bdoBinary';
 
-import { playBdoNote, prefetchSamplesForSong } from '~/utils/audioSynth';
+import { playBdoNote, prefetchSamplesForSong, preloadSamplesForSong, clearDecodedCache } from '~/utils/audioSynth';
 import confetti from 'canvas-confetti';
 
 // Template refs
@@ -990,6 +990,7 @@ function togglePlay() {
       audioCtx.value.close();
       audioCtx.value = null;
       masterGain.value = null;
+      clearDecodedCache();
     }
     // Redraw with cursor at current paused position
     drawPianoRoll();
@@ -1013,6 +1014,9 @@ function togglePlay() {
     masterGain.value.connect(audioCtx.value.destination);
 
     audioStartTime = audioCtx.value.currentTime - (playbackTimeMs.value / 1000);
+
+    // Preload and decode samples in parallel using the active AudioContext
+    preloadSamplesForSong(audioCtx.value, playbackNotesList);
 
     // Precise Scheduler Loop (checks look-ahead window every 40ms)
     scheduleNotes();
@@ -1056,6 +1060,7 @@ function stopPlayback() {
     audioCtx.value.close();
     audioCtx.value = null;
     masterGain.value = null;
+    clearDecodedCache();
   }
   nextTick(() => {
     drawPianoRoll();
