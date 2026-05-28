@@ -719,7 +719,7 @@ import {
   type BdoInstrumentGroup
 } from '~/utils/bdoBinary';
 
-import { playBdoNote } from '~/utils/audioSynth';
+import { playBdoNote, prefetchSamplesForSong } from '~/utils/audioSynth';
 import confetti from 'canvas-confetti';
 
 // Template refs
@@ -970,6 +970,7 @@ function preparePlaybackNotes() {
 
   list.sort((a, b) => a.startSec - b.startSec);
   playbackNotesList = list;
+  prefetchSamplesForSong(list);
 }
 
 // Toggle play and pause state

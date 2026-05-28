@@ -2,6 +2,67 @@
 
 let noiseBuffer: AudioBuffer | null = null;
 
+// Soundfont sampler cache for high-quality instruments
+const sampleCache: Record<string, Record<number, AudioBuffer>> = {};
+
+const NOTE_NAMES = ['C', 'Cs', 'D', 'Ds', 'E', 'F', 'Fs', 'G', 'Gs', 'A', 'As', 'B'];
+
+function getNoteName(pitch: number): string {
+  const octave = Math.floor(pitch / 12) - 1;
+  const name = NOTE_NAMES[pitch % 12];
+  return `${name}${octave}`;
+}
+
+async function fetchAndCacheSample(ctx: AudioContext, instrument: string, pitch: number, noteName: string) {
+  if (!sampleCache[instrument]) {
+    sampleCache[instrument] = {};
+  }
+  if (sampleCache[instrument][pitch]) return;
+
+  const url = `https://gleitz.github.io/midi-js-soundfonts/FluidR3_GM/${instrument}-mp3/${noteName}.mp3`;
+  try {
+    const res = await fetch(url);
+    if (!res.ok) return;
+    const arrayBuffer = await res.arrayBuffer();
+    // Use new Promise-based decodeAudioData for robustness
+    const audioBuffer = await ctx.decodeAudioData(arrayBuffer);
+    sampleCache[instrument][pitch] = audioBuffer;
+  } catch (err) {
+    // Fail silently, fallback is always active
+  }
+}
+
+/**
+ * Background pre-fetcher for the browser's HTTP cache.
+ * Scans the active composition notes and fetches their MP3 files
+ * in the background so that they load instantly during playback.
+ */
+export function prefetchSamplesForSong(notes: { instId: number, pitch: number }[]) {
+  const instrumentMap: Record<number, string> = {
+    0x07: 'acoustic_grand_piano',
+    0x11: 'acoustic_grand_piano',
+    0x00: 'acoustic_guitar_nylon',
+    0x0a: 'acoustic_guitar_nylon',
+    0x01: 'flute',
+    0x0b: 'flute'
+  };
+
+  const fetched = new Set<string>();
+
+  for (const n of notes) {
+    const instrument = instrumentMap[n.instId];
+    if (instrument) {
+      const noteName = getNoteName(n.pitch);
+      const cacheKey = `${instrument}-${noteName}`;
+      if (!fetched.has(cacheKey)) {
+        fetched.add(cacheKey);
+        const url = `https://gleitz.github.io/midi-js-soundfonts/FluidR3_GM/${instrument}-mp3/${noteName}.mp3`;
+        fetch(url).catch(() => {});
+      }
+    }
+  }
+}
+
 /**
  * Generate a reusable white noise buffer for drums, percussion, and cymbals.
  */
@@ -44,14 +105,6 @@ export function midiToFreq(pitch: number): number {
 
 /**
  * Synthesizes and schedules a single note for a BDO instrument.
- * 
- * @param ctx The AudioContext
- * @param dest The destination AudioNode (e.g. master GainNode)
- * @param instId BDO Instrument ID
- * @param pitch MIDI pitch (24 to 108) or drum pitch
- * @param velocity Note velocity (0 to 127)
- * @param time Absolute start time on the audio clock (seconds)
- * @param duration Note duration (seconds)
  */
 export function playBdoNote(
   ctx: AudioContext,
@@ -79,7 +132,43 @@ export function playBdoNote(
     return;
   }
 
-  // Melodic Instrument routers
+  // INTERCEPT HIGH-QUALITY SAMPLERS FOR PIANO, GUITAR, AND FLUTE
+  const instrumentMap: Record<number, string> = {
+    0x07: 'acoustic_grand_piano',
+    0x11: 'acoustic_grand_piano',
+    0x00: 'acoustic_guitar_nylon',
+    0x0a: 'acoustic_guitar_nylon',
+    0x01: 'flute',
+    0x0b: 'flute'
+  };
+
+  const instrument = instrumentMap[instId];
+  if (instrument) {
+    const noteName = getNoteName(pitch);
+    const cachedBuffer = sampleCache[instrument]?.[pitch];
+
+    if (cachedBuffer) {
+      const source = ctx.createBufferSource();
+      source.buffer = cachedBuffer;
+      source.connect(noteGain);
+
+      // Natural, smooth volume envelope for sampled note
+      noteGain.gain.setValueAtTime(0, time);
+      noteGain.gain.linearRampToValueAtTime(velFactor * 0.7, time + 0.005);
+      noteGain.gain.setValueAtTime(velFactor * 0.7, time + Math.max(0, duration - 0.04));
+      noteGain.gain.exponentialRampToValueAtTime(0.001, time + duration);
+
+      source.start(time);
+      source.stop(time + duration);
+      return;
+    } else {
+      // Trigger async load for future plays
+      fetchAndCacheSample(ctx, instrument, pitch, noteName);
+      // Fall back seamlessly to synthesis so there is zero audio delay
+    }
+  }
+
+  // Melodic Instrument routers fallback
   switch (instId) {
     case 0x07: // Beginner Piano
     case 0x11: // Florchestra Piano
